@@ -44,9 +44,41 @@ class ExpenseTableViewCell: UITableViewCell {
         return label
     }()
     
+    private let mainStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 8
+        return stack
+    }()
+    
+    private let textStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.alignment = .leading
+        stack.spacing = 4
+        return stack
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupViews()
+        // Only add subviews ONCE here
+        textStackView.addArrangedSubview(amountLabel)
+        textStackView.addArrangedSubview(descriptionLabel)
+        textStackView.addArrangedSubview(dateLabel)
+        mainStackView.addArrangedSubview(textStackView)
+        mainStackView.addArrangedSubview(categoryLabel)
+        contentView.addSubview(mainStackView)
+        mainStackView.translatesAutoresizingMaskIntoConstraints = false
+        categoryLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            mainStackView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+            mainStackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            mainStackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            mainStackView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
+            categoryLabel.widthAnchor.constraint(equalToConstant: 80),
+            categoryLabel.heightAnchor.constraint(equalToConstant: 24)
+        ])
     }
     
     required init?(coder: NSCoder) {
@@ -57,47 +89,6 @@ class ExpenseTableViewCell: UITableViewCell {
         super.prepareForReuse()
         categoryLabel.text = nil
         categoryLabel.backgroundColor = .systemBlue
-    }
-    
-    private func setupViews() {
-        // Only add subviews once
-        if amountLabel.superview == nil {
-            contentView.addSubview(amountLabel)
-        }
-        if descriptionLabel.superview == nil {
-            contentView.addSubview(descriptionLabel)
-        }
-        if dateLabel.superview == nil {
-            contentView.addSubview(dateLabel)
-        }
-        if categoryLabel.superview == nil {
-            contentView.addSubview(categoryLabel)
-        }
-        
-        amountLabel.translatesAutoresizingMaskIntoConstraints = false
-        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-        dateLabel.translatesAutoresizingMaskIntoConstraints = false
-        categoryLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            amountLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
-            amountLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            amountLabel.trailingAnchor.constraint(lessThanOrEqualTo: categoryLabel.leadingAnchor, constant: -8),
-            
-            descriptionLabel.topAnchor.constraint(equalTo: amountLabel.bottomAnchor, constant: 4),
-            descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            descriptionLabel.trailingAnchor.constraint(lessThanOrEqualTo: categoryLabel.leadingAnchor, constant: -8),
-            
-            dateLabel.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 4),
-            dateLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            dateLabel.trailingAnchor.constraint(lessThanOrEqualTo: categoryLabel.leadingAnchor, constant: -8),
-            dateLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8),
-            
-            categoryLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            categoryLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            categoryLabel.widthAnchor.constraint(equalToConstant: 80),
-            categoryLabel.heightAnchor.constraint(equalToConstant: 24)
-        ])
     }
     
     func configure(with expense: Expense) {

@@ -6,29 +6,21 @@ class CategoryCollectionViewCell: UICollectionViewCell {
     private let categoryLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 16, weight: .medium)
-        label.textColor = .white
+        label.textColor = .black
         label.textAlignment = .center
         return label
     }()
     
-    private let amountLabel: UILabel = {
-        let label = UILabel()
-        label.font = .systemFont(ofSize: 20, weight: .bold)
-        label.textColor = .white
-        label.textAlignment = .center
-        return label
-    }()
-    
-    private let iconImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
-        imageView.tintColor = .white
-        return imageView
-    }()
+    override var isSelected: Bool {
+        didSet {
+            updateSelectionAppearance()
+        }
+    }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupViews()
+        updateSelectionAppearance()
     }
     
     required init?(coder: NSCoder) {
@@ -36,41 +28,41 @@ class CategoryCollectionViewCell: UICollectionViewCell {
     }
     
     private func setupViews() {
-        contentView.layer.cornerRadius = 12
+        contentView.layer.cornerRadius = 16
+        contentView.layer.borderWidth = 2
+        contentView.layer.borderColor = UIColor.systemTeal.cgColor
         contentView.clipsToBounds = true
+        contentView.backgroundColor = .white
         
-        contentView.addSubview(iconImageView)
         contentView.addSubview(categoryLabel)
-        contentView.addSubview(amountLabel)
-        
-        iconImageView.translatesAutoresizingMaskIntoConstraints = false
         categoryLabel.translatesAutoresizingMaskIntoConstraints = false
-        amountLabel.translatesAutoresizingMaskIntoConstraints = false
-        
         NSLayoutConstraint.activate([
-            iconImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            iconImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            iconImageView.widthAnchor.constraint(equalToConstant: 32),
-            iconImageView.heightAnchor.constraint(equalToConstant: 32),
-            
-            categoryLabel.topAnchor.constraint(equalTo: iconImageView.bottomAnchor, constant: 8),
-            categoryLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
-            categoryLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-            
-            amountLabel.topAnchor.constraint(equalTo: categoryLabel.bottomAnchor, constant: 4),
-            amountLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
-            amountLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
-            amountLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+            categoryLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            categoryLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            categoryLabel.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 8),
+            categoryLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -8)
         ])
     }
     
-    func configure(with category: ExpenseCategory, amount: Double) {
+    func configure(with category: ExpenseCategory, amount: Double, selected: Bool) {
         categoryLabel.text = category.rawValue
-        iconImageView.image = UIImage(systemName: category.icon)
-        contentView.backgroundColor = UIColor(named: category.color)
-        
+        isSelected = selected
+    }
+    
+    func configureAsShowAll(total: Double, selected: Bool) {
         let formatter = NumberFormatter()
-        formatter.numberStyle = .currency
-        amountLabel.text = formatter.string(from: NSNumber(value: amount))
+        formatter.numberStyle = .none
+        categoryLabel.text = "All"
+        isSelected = selected
+    }
+    
+    private func updateSelectionAppearance() {
+        if isSelected {
+            contentView.backgroundColor = UIColor.systemTeal.withAlphaComponent(0.2)
+            categoryLabel.textColor = .black
+        } else {
+            contentView.backgroundColor = .white
+            categoryLabel.textColor = .black
+        }
     }
 } 

@@ -75,11 +75,11 @@ class DashboardViewController: UIViewController {
             
             collectionView.topAnchor.constraint(equalTo: totalExpensesLabel.bottomAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.heightAnchor.constraint(equalToConstant: 0),
+            collectionView.widthAnchor.constraint(equalToConstant: 120), // Fixed width for vertical bar
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            tableView.topAnchor.constraint(equalTo: collectionView.bottomAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.topAnchor.constraint(equalTo: totalExpensesLabel.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: collectionView.trailingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
@@ -88,20 +88,19 @@ class DashboardViewController: UIViewController {
     private func createLayout() -> UICollectionViewLayout {
         let itemSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .fractionalHeight(1.0)
+            heightDimension: .absolute(44)
         )
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        
         let groupSize = NSCollectionLayoutSize(
             widthDimension: .fractionalWidth(1.0),
-            heightDimension: .absolute(100)
+            heightDimension: .absolute(44)
         )
-        let columns = UIDevice.current.userInterfaceIdiom == .pad ? 4 : (UIDevice.current.orientation.isLandscape ? 3 : 2)
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitem: item, count: columns)
-        group.interItemSpacing = .fixed(8)
+        let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitem: item, count: 1)
+        group.interItemSpacing = .fixed(12)
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 8
-        section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+        section.interGroupSpacing = 12
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 8, bottom: 16, trailing: 8)
+        section.orthogonalScrollingBehavior = .none // vertical scroll
         return UICollectionViewCompositionalLayout(section: section)
     }
     
@@ -152,24 +151,37 @@ extension DashboardViewController: UITableViewDataSource, UITableViewDelegate {
 // MARK: - UICollectionViewDataSource & UICollectionViewDelegate
 extension DashboardViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return ExpenseCategory.allCases.count
+        return ExpenseCategory.allCases.count + 1 // +1 for 'Show All'
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCollectionViewCell.reuseIdentifier, for: indexPath) as! CategoryCollectionViewCell
-        let category = ExpenseCategory.allCases[indexPath.row]
-        let amount = expenseManager.total(for: category)
-        cell.configure(with: category, amount: amount)
+        if indexPath.row == 0 {
+            // Show All cell
+            let total = expenseManager.totalAllCategories()
+            let selected = expenseManager.selectedCategory == nil
+            cell.configureAsShowAll(total: total, selected: selected)
+        } else {
+            let category = ExpenseCategory.allCases[indexPath.row - 1]
+            let amount = expenseManager.total(for: category)
+            let selected = expenseManager.selectedCategory == category
+            cell.configure(with: category, amount: amount, selected: selected)
+        }
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let category = ExpenseCategory.allCases[indexPath.row]
-        if expenseManager.selectedCategory == category {
+        if indexPath.row == 0 {
             expenseManager.selectedCategory = nil
         } else {
-            expenseManager.selectedCategory = category
+            let category = ExpenseCategory.allCases[indexPath.row - 1]
+            if expenseManager.selectedCategory == category {
+                expenseManager.selectedCategory = nil
+            } else {
+                expenseManager.selectedCategory = category
+            }
         }
+        collectionView.reloadData()
         tableView.reloadData()
     }
 }
